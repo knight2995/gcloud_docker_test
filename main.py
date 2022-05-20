@@ -1,16 +1,30 @@
-# This is a sample Python script.
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import storage
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+import numpy as np
+import cv2
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+cred = credentials.Certificate('serviceAccountKey.json')
+firebase_admin.initialize_app(cred, {
+    'storageBucket': 'fir-page-bb0d1.appspot.com'
+})
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+bucket = storage.bucket()
+
+blob = bucket.blob('up_octo.jpg')
+
+contents = blob.download_as_string()
+
+encoded_img = np.frombuffer(contents, dtype = np.uint8)
+image = cv2.imdecode(encoded_img,  cv2.IMREAD_COLOR)
+
+image = cv2.flip(image, 0)
+
+upload_blob = bucket.blob('down_octo.jpg')
+
+upload_blob.upload_from_string(cv2.imencode('.jpg', image)[1].tobytes(), content_type='image/jpeg')
+
+
+
